@@ -1,38 +1,51 @@
 package com.persons.finder.presentation
 
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import com.persons.finder.data.Location
+import com.persons.finder.data.Person
+import com.persons.finder.domain.services.LocationsService
+import com.persons.finder.domain.services.PersonsService
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("api/v1/persons")
-class PersonController @Autowired constructor() {
+class PersonController(
+    private val personsService: PersonsService,
+    private val locationsService: LocationsService
+) {
+    /*
+        (JSON) Body and return HTTP 201 when created
+    */
+    @PostMapping("")
+    fun createUser(@RequestBody request: Person): ResponseEntity<String> {
+        personsService.save(request)
+        return ResponseEntity.status(HttpStatus.CREATED).body("User created")
+    }
 
     /*
-        TODO PUT API to update/create someone's location using latitude and longitude
+        Update/create someone's location using latitude and longitude
         (JSON) Body
      */
+    @PutMapping("/{id}/location")
+    fun updateLocation(
+        @PathVariable id: Long,
+        @RequestBody request: Location
+    ): ResponseEntity<String> {
 
-    /*
-        TODO POST API to create a 'person'
-        (JSON) Body and return the id of the created entity
-    */
+        return ResponseEntity.status(HttpStatus.CREATED).body("Location Updated")
+    }
 
+        // TODO: hook into LocationsService to persist location for user id
+        // Log values so parameters are actually referenced (avoids unused warnings)
     /*
-        TODO GET API to retrieve people around query location with a radius in KM, Use query param for radius.
-        TODO API just return a list of persons ids (JSON)
-        // Example
-        // John wants to know who is around his location within a radius of 10km
-        // API would be called using John's id and a radius 10km
+        GET API to retrieve a person by id
      */
-
-    /*
-        TODO GET API to retrieve a person or persons name using their ids
-        // Example
-        // John has the list of people around them, now they need to retrieve everybody's names to display in the app
-        // API would be called using person or persons ids
-     */
+    @GetMapping("/{id}")
+    fun getPerson(@PathVariable id: Long): ResponseEntity<Person> {
+        val person = personsService.getById(id)
+        return ResponseEntity.ok(person)
+    }
 
     @GetMapping("")
     fun getExample(): String {
