@@ -5,12 +5,14 @@ import com.persons.finder.entity.LocationEntity
 import com.persons.finder.entity.UserEntity
 import com.persons.finder.repository.LocationRepository
 import org.springframework.stereotype.Service
+import org.springframework.jdbc.core.JdbcTemplate
 
 @Service
 class LocationsServiceImpl (
     private val locationsRepository: LocationRepository,
     private val openAIService: OpenAIService,
-    private val personsService: PersonsService
+    private val personsService: PersonsService,
+    private val db: JdbcTemplate
 ): LocationsService {
 
     override fun addLocation(location: Location) : Location {
@@ -41,7 +43,23 @@ class LocationsServiceImpl (
     }
 
     override fun findAround(latitude: Double, longitude: Double, radiusInKm: Double): List<Location> {
-        TODO("Not yet implemented")
+        // Use OpenAI to infer country/city of the query point to reuse country/city filtering
+        val (country, city) = openAIService.getCountryAndCityByCoordinates(latitude, longitude)
+        println("OpenAI returned country: $country, city: $city for coordinates: ${latitude}, ${longitude}")
+
+        // Call repository native query which computes distance using Haversine formula and filters by country/city
+        val entities = locationsRepository.findWithinRadiusByCountryCity(latitude, longitude, radiusInKm, country, city)
+
+        // Map entities to domain model and return
+        return entities.map { e ->
+            Location(
+                referenceId = e.referenceId,
+                latitude = e.latitude.toDouble(),
+                longitude = e.longitude.toDouble(),
+                city = e.city,
+                country = e.country
+            )
+        }
     }
 
 }

@@ -30,7 +30,7 @@ class PersonsServiceImpl(
             name = person.name
         )
         val p = userRepository.save(entity)
-        return p.id;
+        return p.id
     }
 
 }

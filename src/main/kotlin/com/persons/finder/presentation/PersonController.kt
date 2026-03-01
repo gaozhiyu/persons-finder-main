@@ -1,6 +1,7 @@
 package com.persons.finder.presentation
 
 import com.persons.finder.data.Location
+import com.persons.finder.data.NearByLocation
 import com.persons.finder.data.Person
 import com.persons.finder.data.PersonResponse
 import com.persons.finder.domain.services.LocationsService
@@ -47,8 +48,6 @@ class PersonController(
         return ResponseEntity.status(HttpStatus.CREATED).body(result)
     }
 
-        // TODO: hook into LocationsService to persist location for user id
-        // Log values so parameters are actually referenced (avoids unused warnings)
     /*
         GET API to retrieve a person by id
      */
@@ -56,6 +55,15 @@ class PersonController(
     fun getPerson(@PathVariable id: Long): ResponseEntity<Person> {
         val person = personsService.getById(id)
         return ResponseEntity.ok(person)
+    }
+
+    /*
+    GET API to retrieve a person by id
+ */
+    @GetMapping("/nearby")
+    fun getNearBys(@RequestBody request: NearByLocation): ResponseEntity<List<Location>> {
+        val result = locationsService.findAround(request.latitude ,request.longitude, request.distance?.toDouble() ?: 5.0)
+        return ResponseEntity.ok(result)
     }
 
     @GetMapping("")

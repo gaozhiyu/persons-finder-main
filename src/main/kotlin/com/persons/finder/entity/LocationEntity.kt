@@ -29,5 +29,5 @@ data class LocationEntity(
 //    @JoinColumn(name = "reference_id")
 //    val user: UserEntity
 ){
-    protected constructor() : this(0, BigDecimal.ZERO, BigDecimal.ZERO, "", "") 
+    protected constructor() : this(0, BigDecimal.ZERO, BigDecimal.ZERO, "", "")
 }
