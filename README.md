@@ -69,3 +69,25 @@ Clone this repo and push your solution to your own public repository.
 ## 📬 Submission
 
 Submit your repository link. We will read your code, your `AI_LOG.md`, and your `SECURITY.md`.
+
+## ✅ Below it is the part from the interivewee.
+
+
+## ✅ How to run
+
+Assume the correct gradle version and java version are available.
+1. Clone the repository.
+2. Navigate to the project directory.
+3. docker compose up -d , this will start db and run the initial scirpt to create the database
+4. in application.properties, db credentails are correct. Update the OPENAPI key
+5. ./gradlew clean build 
+6. ./gradlew bootRun
+7. I will put the postman collectionhere. You may run from there. 
+
+
+
+## Notes:
+
+1. For the nearby query, take the perofrmance tuning by design
+        - Take some more criterial into consideration like city and country, we can reply on the index when calculate the distance.
+        - Have done some performance tuning from Raw query from AI by utilizing the index 
