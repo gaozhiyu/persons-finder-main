@@ -3,6 +3,7 @@ package com.persons.finder.presentation
 import com.persons.finder.data.Location
 import com.persons.finder.data.Person
 import com.persons.finder.domain.services.LocationsService
+import com.persons.finder.domain.services.OpenAIService
 import com.persons.finder.domain.services.PersonsService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -12,15 +13,19 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("api/v1/persons")
 class PersonController(
     private val personsService: PersonsService,
-    private val locationsService: LocationsService
+    private val locationsService: LocationsService,
+    private val openAIService: OpenAIService
 ) {
     /*
         (JSON) Body and return HTTP 201 when created
     */
     @PostMapping("")
     fun createUser(@RequestBody request: Person): ResponseEntity<String> {
+        val (intro, summary) = openAIService.generateSelfIntro(request)
         personsService.save(request)
-        return ResponseEntity.status(HttpStatus.CREATED).body("User created")
+        val result = " $intro \n\n\n :  $summary";
+        println(result);
+        return ResponseEntity.status(HttpStatus.CREATED).body(result)
     }
 
     /*
