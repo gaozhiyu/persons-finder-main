@@ -1,5 +1,6 @@
 package com.persons.finder.entity
 
+import com.persons.finder.entity.UserEntity
 import javax.persistence.*
 import java.math.BigDecimal
 
@@ -27,4 +28,6 @@ data class LocationEntity(
 //    @OneToOne
 //    @JoinColumn(name = "reference_id")
 //    val user: UserEntity
-)
+){
+    protected constructor() : this(0, BigDecimal.ZERO, BigDecimal.ZERO, "", "") 
+}

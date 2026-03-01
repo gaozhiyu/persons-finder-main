@@ -15,4 +15,6 @@ data class UserEntity(
 
 //    @OneToOne(mappedBy = "users", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
 //    val location: LocationEntity? = null
-)
+){
+    protected constructor() : this(0, "")
+}

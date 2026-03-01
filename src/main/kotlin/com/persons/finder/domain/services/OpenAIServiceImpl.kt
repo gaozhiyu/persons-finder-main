@@ -1,6 +1,5 @@
 package com.persons.finder.domain.services
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -22,7 +21,7 @@ class OpenAIServiceImpl(
 
     override fun generateSelfIntro(person: com.persons.finder.data.Person): Pair<String, String> {
         return try {
-            val prompt = "Generate a short, quirky bio (2-3 sentences) and a brief summary (1 paragraph) for a person named ${person.name} who works as a ${person.jobTitle} and enjoys ${person.hobby}. Return the response in the format: BIO|||SUMMARY"
+            val prompt = "Generate a short, quirky bio (2-3 sentences) and a brief summary (1 paragraph) for a person named ${person.name} who works as a ${person.jobTitle} and enjoys ${person.hobby}. Return the response as valid JSON with the following structure: {\"bio\": \"...\", \"summary\": \"...\"}"
 
             val request = ChatCompletionRequest(
                 model = model,
@@ -39,9 +38,9 @@ class OpenAIServiceImpl(
             val responseText = response.choices.firstOrNull()?.message?.content ?: ""
             println("responseText is " + responseText)
 
-            val parts = responseText.split("|||")
-            val intro = if (parts.isNotEmpty()) parts[0].trim() else responseText
-            val summary = if (parts.size > 1) parts[1].trim() else "A brief introduction about ${person.name}."
+            val bioResponse = parseJsonResponse(responseText)
+            val intro = bioResponse["bio"] ?: responseText
+            val summary = bioResponse["summary"] ?: "A brief introduction about ${person.name}."
 
             Pair(intro, summary)
         } catch (_: Exception) {
@@ -54,7 +53,7 @@ class OpenAIServiceImpl(
 
     override fun getCountryAndCityByCoordinates(latitude: Double, longitude: Double): Pair<String, String> {
         return try {
-            val prompt = "Based on the geographic coordinates latitude=$latitude and longitude=$longitude, provide only the country name and city name in the format: COUNTRY|CITY. If the coordinates are in the ocean or an invalid location, use best estimates."
+            val prompt = "Based on the geographic coordinates latitude=$latitude and longitude=$longitude, provide only the country name and city name. Return the response as valid JSON with the following structure: {\"country\": \"...\", \"city\": \"...\"}. If the coordinates are in the ocean or an invalid location, use best estimates."
 
             val request = ChatCompletionRequest(
                 model = model,
@@ -70,9 +69,9 @@ class OpenAIServiceImpl(
             val response = callOpenAI(request)
             val responseText = response.choices.firstOrNull()?.message?.content ?: ""
 
-            val parts = responseText.split("|")
-            val country = if (parts.isNotEmpty()) parts[0].trim() else "Unknown"
-            val city = if (parts.size > 1) parts[1].trim() else "Unknown"
+            val locationResponse = parseJsonResponse(responseText)
+            val country = locationResponse["country"] ?: "Unknown"
+            val city = locationResponse["city"] ?: "Unknown"
 
             Pair(country, city)
         } catch (_: Exception) {
@@ -90,6 +89,18 @@ class OpenAIServiceImpl(
         val entity = HttpEntity(request, headers)
         return restTemplate.postForObject(apiUrl, entity, ChatCompletionResponse::class.java)
             ?: throw RestClientException("Empty response from OpenAI API")
+    }
+
+    private fun parseJsonResponse(jsonString: String): Map<String, String> {
+        return try {
+            val cleanedJson = jsonString.trim().removePrefix("```json").removePrefix("```").removeSuffix("```").trim()
+            val mapper = com.fasterxml.jackson.databind.ObjectMapper()
+            @Suppress("UNCHECKED_CAST")
+            val result = mapper.readValue(cleanedJson, Map::class.java) as? Map<String, String> ?: emptyMap()
+            result
+        } catch (_: Exception) {
+            emptyMap()
+        }
     }
 
     // Data classes for request/response

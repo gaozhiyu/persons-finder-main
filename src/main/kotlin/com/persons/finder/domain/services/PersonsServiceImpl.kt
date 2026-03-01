@@ -24,12 +24,13 @@ class PersonsServiceImpl(
         )
     }
 
-    override fun save(person: Person) {
+    override fun save(person: Person) : Long{
         val entity = UserEntity(
             id = person.id,
             name = person.name
         )
-        userRepository.save(entity)
+        val p = userRepository.save(entity)
+        return p.id;
     }
 
 }

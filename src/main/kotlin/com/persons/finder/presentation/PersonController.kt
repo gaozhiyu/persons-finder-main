@@ -2,6 +2,7 @@ package com.persons.finder.presentation
 
 import com.persons.finder.data.Location
 import com.persons.finder.data.Person
+import com.persons.finder.data.PersonResponse
 import com.persons.finder.domain.services.LocationsService
 import com.persons.finder.domain.services.OpenAIService
 import com.persons.finder.domain.services.PersonsService
@@ -20,12 +21,15 @@ class PersonController(
         (JSON) Body and return HTTP 201 when created
     */
     @PostMapping("")
-    fun createUser(@RequestBody request: Person): ResponseEntity<String> {
+    fun createUser(@RequestBody request: Person): ResponseEntity<PersonResponse> {
         val (intro, summary) = openAIService.generateSelfIntro(request)
-        personsService.save(request)
-        val result = " $intro \n\n\n :  $summary";
-        println(result);
-        return ResponseEntity.status(HttpStatus.CREATED).body(result)
+        val id  = personsService.save(request)
+        val p = PersonResponse(
+            id = id,
+            bio = intro,
+            summary = summary
+        )
+        return ResponseEntity.status(HttpStatus.CREATED).body(p)
     }
 
     /*
@@ -36,9 +40,11 @@ class PersonController(
     fun updateLocation(
         @PathVariable id: Long,
         @RequestBody request: Location
-    ): ResponseEntity<String> {
+    ): ResponseEntity<Location> {
 
-        return ResponseEntity.status(HttpStatus.CREATED).body("Location Updated")
+        var copy = request.copy(referenceId = id);
+        val result = locationsService.addLocation(copy)
+        return ResponseEntity.status(HttpStatus.CREATED).body(result)
     }
 
         // TODO: hook into LocationsService to persist location for user id
